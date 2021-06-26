@@ -94,10 +94,10 @@
     overflow-y: scroll;
 }
 
-.messageDiv {
+.messageDivOther {
     width: 100%;
-    padding-top: 2%;
-    padding-bottom: 2%;
+    padding-top: 0%;
+    padding-bottom: 0%;
     margin-top: 2%;
     margin-bottom: 2%;
     display: flex;
@@ -106,6 +106,37 @@
     border-radius: 5px;
 
 }
+
+.messageDivMe {
+    width: 100%;
+    padding-top: 0%;
+    padding-bottom: 0%;
+    margin-top: 2%;
+    margin-bottom: 2%;
+    display: flex;
+    clear: both;
+    background-color: #d2d2d2;
+    border-radius: 5px;
+}
+
+.messageDivMe .messagePlayer{
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    height: 100%;
+    background-color : #bdbdbd;
+}
+
+.messageDivMe p{
+    color: #404040;
+}
+.messageDivMe #playerTag{
+    color: #464646;
+}
+
+.messageDivMe .playerSessid{
+    color: #464646;
+}
+
 
 .messagePlayer {
     width:40%;
@@ -116,10 +147,10 @@
     text-align: center;
     color: white;
     min-height: 30%;
-    font-size: 85%;
+    font-size: 95%;
 }
 
-#playerSessid{
+.playerSessid{
     text-align: center;
     color: white;
     min-height: 30%;
@@ -139,7 +170,7 @@
     white-space: -moz-pre-wrap; /* Firefox 1.0-2.0 */
     white-space: pre-wrap;      /* current browsers */
     text-align: start;
-    font-size: 75%;
+    font-size: 85%;
     color: white;
 }
 

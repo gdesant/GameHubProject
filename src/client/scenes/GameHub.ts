@@ -9,10 +9,17 @@ import Container = Phaser.GameObjects.Container;
 import {DataChange} from "colyseus.js";
 import {Message} from "../../types/messages";
 import Texto from "../../server/Chat/Texto";
+import {
+    createMessageDiv,
+    getScrollHeightPercentage,
+    initInputMessageDiv,
+    initMessageDiv
+} from "./components/GameHubComponentsChat";
+import {createPlayerDiv} from "./components/GameHubComponentsPlayersBoard";
 
 export default class GameHub extends Phaser.Scene {
 
-    private hubMaxCharMessage = 100
+    public hubMaxCharMessage = 100
 
     private clientPlayer: Player | undefined
     private server: Server | undefined
@@ -20,6 +27,10 @@ export default class GameHub extends Phaser.Scene {
     private playersObjects: Container | undefined
     private UI: HTMLElement | undefined
     private stat: IGameHubState | undefined
+
+    public getClient(): Player | undefined {
+        return this.clientPlayer
+    }
 
     constructor() {
         super('hub');
@@ -104,60 +115,14 @@ export default class GameHub extends Phaser.Scene {
     private initChat(middleHubDiv: HTMLElement) {
         let chatDiv = document.createElement('div')
         chatDiv.id = 'chatDiv'
+        let messagesDiv = initMessageDiv()
 
-        let messagesDiv = this.initMessageDiv()
-
-        let inputDiv = this.initInputMessageDiv()
+        let inputDiv = initInputMessageDiv(this)
         inputDiv.id = 'inputDiv'
 
         chatDiv.appendChild(messagesDiv)
         chatDiv.appendChild(inputDiv)
         middleHubDiv.appendChild(chatDiv)
-    }
-
-    private initMessageDiv(): HTMLElement {
-        let messagesDiv = document.createElement('ul')
-        messagesDiv.id = 'messagesDiv'
-        return messagesDiv
-    }
-
-    private initInputMessageDiv(): HTMLElement {
-        let inputDiv = document.createElement('div')
-        inputDiv.className = "control"
-        inputDiv.id = 'inputDiv'
-
-        let spanIco = document.createElement('span')
-        let input = document.createElement('textarea')
-        input.id = 'messageInput'
-        input.placeholder = "Message ..."
-        input.maxLength = this.hubMaxCharMessage;
-
-        input.addEventListener("keyup", function(event) {
-            if (event.keyCode === 13) {
-                event.preventDefault();
-                spanIco.click();
-            }
-        })
-
-
-        spanIco.className = "icon"
-        spanIco.id = 'spawnIcoMsg'
-        let slf = this
-        spanIco.onclick = function () {
-            if (!slf.sendMsg(input.value))
-                input.value = ""
-        }
-
-
-        let sendIco = document.createElement('i')
-        sendIco.className = "fas fa-paper-plane"
-
-
-        spanIco.appendChild(sendIco)
-        inputDiv.appendChild(input)
-        inputDiv.appendChild(spanIco)
-
-        return inputDiv
     }
 
     private handleAddMessage(msg: Texto) {
@@ -169,63 +134,29 @@ export default class GameHub extends Phaser.Scene {
             this.handleChangeMessage(msg)
         }
 
-
         let parent = document.getElementById('messagesDiv')
 
-        if (parent === null)
-            return undefined
-        let messageDiv = document.createElement('li')
-        messageDiv.id = 'message_'+ msg.messageId
-        messageDiv.className = 'messageDiv'
+        let messageDiv: HTMLElement = createMessageDiv(msg, this)
 
-        if (this.clientPlayer?.id === 0) {
-            let messageBan = document.createElement('i')
-            messageBan.className = 'fas fa-ban'
-            messageBan.id = 'messageBan'
+        let percent: number | undefined = 0
+
+        if (parent !== null){
+            percent = getScrollHeightPercentage(parent)
+            parent.appendChild(messageDiv)
+        }
 
 
+        let messagesDiv = document.getElementById('messagesDiv')
 
-            let slf = this
-            messageBan.onclick = function () {
-                slf.banMsg(msg.messageId)
+        if (parent !== null){
+            console.log(percent + ' ScrollPercent')
+            if (percent !== undefined){
+                if (percent > 90 || isNaN(percent)) {
+                    console.log('Scroll to the bottom')
+                    parent.scroll(0, parent.scrollHeight)
+                }
             }
-            messageDiv.appendChild(messageBan)
         }
-
-        let player = document.createElement('div')
-        player.className = 'messagePlayer'
-
-        let playerTag = document.createElement('div')
-        playerTag.id = 'playerTag'
-        playerTag.innerHTML = 'Player ' + msg.sender
-        player.appendChild(playerTag)
-
-        if (this.clientPlayer?.id === 0){
-            let playerSessid = document.createElement('div')
-            playerSessid.id = 'playerSessid'
-            playerSessid.innerHTML += '('+ msg.senderSessionId+')'
-            player.appendChild(playerSessid)
-        }
-
-        let messageContent = document.createElement('div')
-        messageContent.className = 'messageContent'
-
-        let message = document.createElement('p')
-        message.className = 'messageContentText'
-        message.id = 'messageContentText_' + msg.messageId
-        message.innerHTML = msg.message
-
-        messageContent.appendChild(message)
-
-
-
-
-        messageDiv.appendChild(player)
-        messageDiv.appendChild(messageContent)
-
-        parent.appendChild(messageDiv)
-
-        parent.appendChild(messageDiv)
     }
 
     private handleChangeMessage(msg: Texto) {
@@ -243,10 +174,10 @@ export default class GameHub extends Phaser.Scene {
 
     }
 
-    private sendMsg(msg: string | null): number {
-        console.log('Trying to SendMSG: ' + msg)
+    sendMsg(msg: string | null): number {
+        console.log('Trying to SendMSG: ' + msg + 'msg.lenght: ' + msg?.length )
         if (this.server !== undefined){
-            if (msg !== null && msg.length > 0 && msg.length < 101){
+            if (msg !== null && msg.length > 1 && msg.length < 101){
                 this.server.sendMsg(msg)
                 return 0
             }
@@ -254,7 +185,7 @@ export default class GameHub extends Phaser.Scene {
         return 1
     }
 
-    private banMsg(msgId: string): void {
+    banMsg(msgId: string): void {
         if (this.server !== undefined){
             console.log('Trying to BanMSG: ' + msgId)
             this.server.banMsg(msgId)
@@ -282,37 +213,7 @@ export default class GameHub extends Phaser.Scene {
         console.log('addPlayer: playerID' + player.id + ' - sessionID: ' + player.sessionId)
 
         if (parent !==  null) {
-            let playerDiv = document.createElement('li')
-            playerDiv.id = 'playerDiv'+player.sessionId
-            playerDiv.className = "playerCell"
-
-            if (this.clientPlayer?.id === 0) {
-                let banIcon = document.createElement('i')
-                banIcon.id = 'playerBan'+player.sessionId
-                banIcon.className = 'playerBan fas fa-user-alt-slash'
-                playerDiv.appendChild(banIcon)
-            }
-
-            let colorIcon = document.createElement('i')
-            colorIcon.id = 'playerAvatar'+player.sessionId
-            colorIcon.className = 'playerAvatar fas fa-user-circle'
-            colorIcon.style.color = player.color.toString(16)
-            playerDiv.appendChild(colorIcon)
-
-            let name = document.createElement('h1')
-            name.id = 'playerName'+player.sessionId
-            name.className = 'playerName'
-            name.innerHTML = 'Player 0' + player.id
-            playerDiv.appendChild(name)
-
-            if (player.sessionId === this.clientPlayer?.sessionId || this.clientPlayer?.id === 0){
-                let renameIcon = document.createElement('i')
-                renameIcon.id = 'playerRename'+player.sessionId
-                renameIcon.className = 'playerRename fas fa-edit'
-                playerDiv.appendChild(renameIcon)
-
-            }
-
+            let playerDiv = createPlayerDiv(player, this)
             parent.appendChild(playerDiv)
 
         }
@@ -327,23 +228,26 @@ export default class GameHub extends Phaser.Scene {
 
     private handleChangePlayer(player: Player){
         console.log('HandleChangePlayer: ' + player.sessionId)
+
+        //Refresh Name
+        let name = document.getElementById('playerName'+player.sessionId)
+        if (name !== null)
+            name.innerHTML = 'Player 0' + (player.id + 1).toString()
+
+        //Refresh Avatar
+        let color = document.getElementById('playerAvatar'+player.sessionId)
+        if (color !== null)
+            color.style.color = player.color.toString(16)
+
+        //Remove RenameIcon
+        let rename = document.getElementById('playerRename'+player.sessionId)
+        if (rename !== null)
+            rename.remove()
+
+
+
         let playerDiv = document.getElementById('playerDiv'+player.sessionId)
         if (playerDiv !== null){
-
-            //Refresh Name
-            let name = document.getElementById('playerName'+player.sessionId)
-            if (name !== null)
-                name.innerHTML = 'Player 0' + player.id
-
-            //Refresh Avatar
-            let color = document.getElementById('playerAvatar'+player.sessionId)
-            if (color !== null)
-                color.style.color = player.color.toString(16)
-
-            //Remove RenameIcon
-            let rename = document.getElementById('playerRename'+player.sessionId)
-            if (rename !== null)
-                rename.remove()
 
             //Replace RenameIcon
             if (player.sessionId === this.clientPlayer?.sessionId || this.clientPlayer?.id === 0){
@@ -380,4 +284,5 @@ export default class GameHub extends Phaser.Scene {
     private handleMasterLaunch(players: CollectionSchema<Player>) {
         console.log('Launch!!' + players.size.toString());
     }
+
 }

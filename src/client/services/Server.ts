@@ -37,6 +37,7 @@ export default class Server {
         })
 
 
+
         this.room.onStateChange.once(state => {
             this.events.emit('first-state-changed', state)
         })
@@ -45,22 +46,33 @@ export default class Server {
             this.events.emit('on-state-changed', state)
         })
 
-
+        //Handle Message PlayerJoin from server
         this.room.onMessage(Message.PlayerJoin, (message: { player: Player }) => {
             console.log(message.player.id +' - ('+ message.player.sessionId+ ') ' + ' has Join !')
             this.events.emit('player-join', message.player)
         })
 
-        this.room.state.players.onChange = (item, key) => {
-            this.events.emit('player-change' ,item)
+        //Handle Changes on each player MasterSide
+        this.room.state.players.onChange = (pl) => {
+            pl.onChange = (changes) => {
+                this.events.emit('player-change', pl)
+            }
         }
 
+        //Handle Changes on each player PlayersSide
+        this.room.state.players.onAdd = (pl) => {
+            pl.onChange = (changes) => {
+                this.events.emit('player-change', pl)
+            }
+        }
+
+        //Handle Message PlayerLeave from server
         this.room.onMessage(Message.PlayerLeave, (message: { playerSessId: Player, state: IGameHubState}) => {
             console.log(message.playerSessId + ' has Leave !')
             this.events.emit('player-leave', message.playerSessId, message.state)
         })
 
-
+        //handle chat events
         this.room.state.chat.onChange = (changes) => {
             console.log('Chat change')
             if (this.initChat === 0 && this.room?.state.chat.messages !== undefined){
@@ -80,23 +92,6 @@ export default class Server {
                 this.initChat = 1
             }
         }
-
-       // this.room.state.board.onAdd = (cell, key) => {
-            //console.log('cell added', cell, key)
-        //}
-    }
-
-    makeSelection(id: number) {
-        if(!this.room) {
-            return
-        }
-
-        if(this.playerIndex !== this.room.state.activePlayer) {
-            console.warn('this is not your turn')
-            return
-        }
-
-        this.room.send(Message.PlayerSelection, {index: id})
     }
 
     leave() {

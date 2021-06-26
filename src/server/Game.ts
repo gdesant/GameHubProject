@@ -92,6 +92,7 @@ export default class Game extends Room<GameHubState>
     onLeave(client: Client): void | Promise<any> {
         let id = -1
         let pl: Player | undefined
+
         //Looking for the player in the State.Players
         this.state.players.forEach(player => {
             if (player.sessionId === client.sessionId){
