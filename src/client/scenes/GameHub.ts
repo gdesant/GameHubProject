@@ -41,12 +41,18 @@ export default class GameHub extends Phaser.Scene {
         await this.server.join()
 
         if (this.server !== undefined) {
+            this.server.onClientReturn(this.handleClientReturn, this)
+
             this.server.firstStateChanged(this.handleInitHub, this)
             this.server.onStateChanged(this.stateRefresh, this)
+
             this.server.onAddMessage(this.handleAddMessage, this)
             this.server.onChangeMessage(this.handleChangeMessage, this)
+
             this.server.onPlayerJoin(this.handlePlayersJoin, this)
+            this.server.onPlayerChange(this.handleChangePlayer, this)
             this.server.onPlayerLeave(this.handlePlayersLeave, this)
+
             this.server.onMasterLaunch(this.handleMasterLaunch, this)
         }
     }
@@ -54,15 +60,7 @@ export default class GameHub extends Phaser.Scene {
     //Refresh state when change
     private handleInitHub = (state: IGameHubState) =>{
         this.stat = state
-        this.stat.players.onAdd = (change) => {
-            console.log('Add Player')
-            this.handleAddPlayer(change)
-        }
         this.initHub(state)
-        this.stat.players.onRemove = (change) => {
-            console.log('Remove Player')
-            this.handleRemovePlayer(change)
-        }
     }
 
     private stateRefresh = (state: IGameHubState) => {
@@ -281,6 +279,8 @@ export default class GameHub extends Phaser.Scene {
 
         let parent = document.getElementById('playerListDiv')
 
+        console.log('addPlayer: playerID' + player.id + ' - sessionID: ' + player.sessionId)
+
         if (parent !==  null) {
             let playerDiv = document.createElement('li')
             playerDiv.id = 'playerDiv'+player.sessionId
@@ -313,37 +313,68 @@ export default class GameHub extends Phaser.Scene {
 
             }
 
-            player.onChange = (changes) => {
-                this.handleChangePlayer(player)
-            }
-
             parent.appendChild(playerDiv)
 
         }
     }
 
-    private handleRemovePlayer(player: Player){
-
+    private handleRemovePlayer(playerSessId: string){
+        console.log('HandleRemovePlayer: ' + playerSessId)
+        let playerDiv = document.getElementById('playerDiv'+playerSessId)
+        if (playerDiv !== null)
+            playerDiv.remove()
     }
 
     private handleChangePlayer(player: Player){
+        console.log('HandleChangePlayer: ' + player.sessionId)
+        let playerDiv = document.getElementById('playerDiv'+player.sessionId)
+        if (playerDiv !== null){
 
+            //Refresh Name
+            let name = document.getElementById('playerName'+player.sessionId)
+            if (name !== null)
+                name.innerHTML = 'Player 0' + player.id
+
+            //Refresh Avatar
+            let color = document.getElementById('playerAvatar'+player.sessionId)
+            if (color !== null)
+                color.style.color = player.color.toString(16)
+
+            //Remove RenameIcon
+            let rename = document.getElementById('playerRename'+player.sessionId)
+            if (rename !== null)
+                rename.remove()
+
+            //Replace RenameIcon
+            if (player.sessionId === this.clientPlayer?.sessionId || this.clientPlayer?.id === 0){
+                let renameIcon = document.createElement('i')
+                renameIcon.id = 'playerRename'+player.sessionId
+                renameIcon.className = 'playerRename fas fa-edit'
+                playerDiv.appendChild(renameIcon)
+
+            }
+
+        }
     }
 
 
 
     //Handlers
 
-    private handlePlayersJoin(playerIndex: number, player: Player, sessionId: string, state: IGameHubState) {
-        this.clientPlayer = player
-        console.log('HandleSessionId: ' + this.clientPlayer.sessionId)
+    private handlePlayersJoin(player: Player) {
+        this.handleAddPlayer(player)
+        console.log('PlayerJoin: ' + player.sessionId)
     }
 
 
-    private handleClientJoin
+    private handleClientReturn(playerIndex: number, player: Player, sessionId: string, state: IGameHubState) {
+        this.clientPlayer = player
+        this.handleAddPlayer(player)
+        console.log('ClientReturn: ' + this.clientPlayer.sessionId)
+    }
 
-    private handlePlayersLeave(playerIndex: number, state: IGameHubState) {
-        console.log('PlayerLeave: ' + playerIndex)
+    private handlePlayersLeave(playerSessId: string, state: IGameHubState) {
+        this.handleRemovePlayer(playerSessId)
     }
 
     private handleMasterLaunch(players: CollectionSchema<Player>) {

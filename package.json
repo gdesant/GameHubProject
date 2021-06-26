@@ -3,11 +3,11 @@
 	"version": "1.0.0",
 	"description": "A typescript template project for Phaser 3 using Parceljs",
 	"scripts": {
-		"start": "parcel ./src/client/index.html -p 8000",
-		"start-server": "./node_modules/.bin/ts-node-dev --project tsconfig.server.json src/server/index.ts",
-		"build": "parcel build ./src/client/index.html --no-source-maps --no-minify",
+		"start": "parcel src/client/index.html -p 8000",
+		"start-server": "ts-node-dev --project tsconfig.server.json src/server/index.ts",
+		"build": "parcel build src/client/index.html --out-dir dist",
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"lint": "./node_modules/.bin/eslint ./src --ext .js,.jsx,.ts,.tsx"
+		"lint": "eslint ./src --ext .js,.jsx,.ts,.tsx"
 	},
 	"author": "supertommy",
 	"license": "MIT",
@@ -25,7 +25,6 @@
 		"minimist": ">=1.2.2",
 		"parcel-plugin-clean-easy": "^1.0.2",
 		"parcel-plugin-static-files-copy": "^2.4.3",
-		"sass": "^1.35.1",
 		"ts-node-dev": "^1.1.1",
 		"typescript": "^3.8.3"
 	},

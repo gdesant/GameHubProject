@@ -2,6 +2,7 @@ export enum Message
 {
 	PlayerSelection,
 	PlayerIndex,
+	ClientReturn,
 	PlayerJoin,
 	PlayerLeave,
 	SendMsg,

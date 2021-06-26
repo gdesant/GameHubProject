@@ -13,7 +13,7 @@
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"sourceMap": true,
-		"baseUrl": "../multiplayer-game/src",
+		"baseUrl": "./src",
 		"paths": {
 		},
 		"typeRoots": [

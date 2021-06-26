@@ -31,15 +31,11 @@ export default class Server {
             console.log(this.playerIndex)
         })
 
-        this.room.onMessage(Message.PlayerJoin, (message: { playerIndex: number, player: Player, sessionId: string, state: IGameHubState }) => {
-            console.log(message.playerIndex + ' has Join !')
-            this.events.emit('player-join', message.playerIndex, message.player, message.sessionId, message.state)
+        this.room.onMessage(Message.ClientReturn, (message: { playerIndex: number, player: Player, sessionId: string, state: IGameHubState }) => {
+            console.log(message.playerIndex + ' is You !')
+            this.events.emit('client-return', message.playerIndex, message.player, message.sessionId, message.state)
         })
 
-        this.room.onMessage(Message.PlayerLeave, (message: { playerIndex: number, state: IGameHubState}) => {
-            console.log(message.playerIndex+ ' has Leave !')
-            this.events.emit('player-leave', message.playerIndex, message.state)
-        })
 
         this.room.onStateChange.once(state => {
             this.events.emit('first-state-changed', state)
@@ -49,20 +45,38 @@ export default class Server {
             this.events.emit('on-state-changed', state)
         })
 
-        this.room.state.players.onAdd = (changes) => {
+
+        this.room.onMessage(Message.PlayerJoin, (message: { player: Player }) => {
+            console.log(message.player.id +' - ('+ message.player.sessionId+ ') ' + ' has Join !')
+            this.events.emit('player-join', message.player)
+        })
+
+        this.room.state.players.onChange = (item, key) => {
+            this.events.emit('player-change' ,item)
         }
+
+        this.room.onMessage(Message.PlayerLeave, (message: { playerSessId: Player, state: IGameHubState}) => {
+            console.log(message.playerSessId + ' has Leave !')
+            this.events.emit('player-leave', message.playerSessId, message.state)
+        })
+
 
         this.room.state.chat.onChange = (changes) => {
             console.log('Chat change')
             if (this.initChat === 0 && this.room?.state.chat.messages !== undefined){
+
+                //Declare event that declare when there is a Change of chat.messages
                 this.room.state.chat.messages.onChange = (item, key) => {
                     console.log('Message Change')
                     this.events.emit('on-ban-msg', item)
                 }
+
+                //Declare event that declare when there is an Add of chat.messages
                 this.room.state.chat.messages.onAdd = (change) => {
                     console.log('Message Add')
                     this.events.emit('on-add-msg', change)
                 }
+
                 this.initChat = 1
             }
         }
@@ -90,12 +104,14 @@ export default class Server {
         this.events.removeAllListeners()
     }
 
-    //Emit Events
+//Emit Events
+    //If attempt to change Player
     sendMsg(msg: string) {
         if (this.room !== undefined)
             this.room.send(Message.SendMsg, {message: msg})
     }
 
+    //If attempt to BanMsg
     banMsg(messageId: string) {
         if (this.room !== undefined){
             this.room.send(Message.BanMsg, {messageId: messageId})
@@ -103,31 +119,48 @@ export default class Server {
 
     }
 
-
-    //Local Events
-    onAddMessage(cb: (msg: Texto) => void, context?: any) {
-        this.events.on('on-add-msg', cb, context)
+//Local Events
+    //Event on the connection of the client
+    onClientReturn(cb: (playerIndex: number, player: Player, sessionId: string, state: IGameHubState) => void, context?: any) {
+        this.events.on('client-return', cb, context)
     }
 
-    onChangeMessage(cb: (msg: Texto) => void, context?: any) {
-        this.events.on('on-ban-msg', cb, context)
-    }
 
+    //Event on State init
     firstStateChanged(cb: (state: IGameHubState) => void, context?: any) {
         this.events.once('first-state-changed', cb, context)
     }
 
+    //Event on a State change
     onStateChanged(cb: (state: IGameHubState) => void, context?: any) {
         this.events.on('on-state-changed', cb, context)
     }
 
-    onPlayerJoin(cb: (playerIndex: number, player: Player, sessionId: string, state: IGameHubState) => void, context?: any) {
+
+    //Event on sendBan
+    onAddMessage(cb: (msg: Texto) => void, context?: any) {
+        this.events.on('on-add-msg', cb, context)
+    }
+
+    //Event on msgBan
+    onChangeMessage(cb: (msg: Texto) => void, context?: any) {
+        this.events.on('on-ban-msg', cb, context)
+    }
+
+
+    //Event when player different than the client is joining
+    onPlayerJoin(cb: (player: Player) => void, context?: any) {
         this.events.on('player-join', cb, context)
     }
 
-    onPlayerLeave(cb: (playerIndex: number, state: IGameHubState) => void, context?: any) {
+    onPlayerChange(cb: (player: Player) => void, context?: any) {
+        this.events.on('player-change', cb, context)
+    }
+
+    onPlayerLeave(cb: (playerSessId: string, state: IGameHubState) => void, context?: any) {
         this.events.on('player-leave', cb, context)
     }
+
 
     onMasterLaunch(cb: (players: CollectionSchema<Player>) => void, context?: any) {
         this.events.once('master-launch', cb, context)
