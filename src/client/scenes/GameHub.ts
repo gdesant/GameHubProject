@@ -39,9 +39,10 @@ export default class GameHub extends Phaser.Scene {
         }
 
         await this.server.join()
-        this.initHub()
+
         if (this.server !== undefined) {
-            this.server.onStateChanged(this.handleInitHub, this)
+            this.server.firstStateChanged(this.handleInitHub, this)
+            this.server.onStateChanged(this.stateRefresh, this)
             this.server.onAddMessage(this.handleAddMessage, this)
             this.server.onChangeMessage(this.handleChangeMessage, this)
             this.server.onPlayerJoin(this.handlePlayersJoin, this)
@@ -50,61 +51,29 @@ export default class GameHub extends Phaser.Scene {
         }
     }
 
+    //Refresh state when change
     private handleInitHub = (state: IGameHubState) =>{
-       this.iniHub(state)
-    }
-
-
-    private iniHub(state: IGameHubState){
         this.stat = state
-        let background = this.add.rectangle(0, 0, window.innerWidth, window.innerHeight, 0x2C2C2C)
-        /*
-        let title = this.add.text(-30, -200, "Hub", {
-            fontSize: '40px'
-        })
-        //this.initPlayerBoard(state)*/
-        if (state.players !== undefined){
-            if (state.players.at(0) !== undefined){
-                console.log("You are the master")
-                const player = <Player>state.players.at(0)
-            }
-            else
-                console.log("you are not the master !")
+        this.stat.players.onAdd = (change) => {
+            console.log('Add Player')
+            this.handleAddPlayer(change)
         }
-        this.cameras.main.centerOn(0, 0)
+        this.initHub(state)
+        this.stat.players.onRemove = (change) => {
+            console.log('Remove Player')
+            this.handleRemovePlayer(change)
+        }
     }
 
-    private initPlayerBoard(state: IGameHubState){
-        //fill playerElements
-        this.playersObjects = this.add.container()
-        let playerMark
-        let playerName
-        let playerColor
-        state.players.forEach(player => {
-            if (player.id == this.clientPlayer?.id) {
-                playerMark = this.add.rectangle(4, -160 + (30*player.id) + 25/2, 165, 27, 0xDCDCDC)
-                playerMark.id = 'playerMark'
-                playerName = this.add.text(-40, -160 + (30*player.id), 'Player ' + player.id.toString(), {
-                    fontSize: '25px',
-                    color: '#2C2C2C'
-                })
-                this.playersObjects?.add(playerMark)
-
-            } else{
-                playerName = this.add.text(4, -160 + (30*player.id), 'Player ' + player.id.toString(), {
-                    fontSize: '25px',
-                    color: '#DCDCDC'
-                })
-            }
-            playerName.id = 'playerName_' + player.id
-            playerColor = this.add.rectangle(-65, -160 + (30*player.id) + 25/2, 25, 25, player.color)
-            playerColor.id = 'playerColor_' + player.id
-            this.playersObjects?.add(playerName)
-            this.playersObjects?.add(playerColor)
-        })
+    private stateRefresh = (state: IGameHubState) => {
+        this.stat = state
     }
 
-    private initHub() {
+
+    //init Hub
+    private initHub(state: IGameHubState) {
+
+        let background = this.add.rectangle(0, 0, window.innerWidth, window.innerHeight, 0x2C2C2C)
         this.UI = document.createElement('div')
         this.UI.id = 'UIDiv'
 
@@ -126,6 +95,8 @@ export default class GameHub extends Phaser.Scene {
         launchDiv.id = 'launchDiv'
         this.UI.appendChild(launchDiv)
 
+
+        this.cameras.main.centerOn(0, 0)
         this.add.dom(0, 0, this.UI)
     }
 
@@ -274,7 +245,6 @@ export default class GameHub extends Phaser.Scene {
 
     }
 
-
     private sendMsg(msg: string | null): number {
         console.log('Trying to SendMSG: ' + msg)
         if (this.server !== undefined){
@@ -298,7 +268,66 @@ export default class GameHub extends Phaser.Scene {
     private initPlayers(middleHubDiv: HTMLElement) {
         let playerDiv = document.createElement('div')
         playerDiv.id = 'playerDiv'
+
+        let playerList = document.createElement('ul')
+        playerList.id = 'playerListDiv'
+
+
+        playerDiv.appendChild(playerList)
         middleHubDiv.appendChild(playerDiv)
+    }
+
+    private handleAddPlayer(player: Player){
+
+        let parent = document.getElementById('playerListDiv')
+
+        if (parent !==  null) {
+            let playerDiv = document.createElement('li')
+            playerDiv.id = 'playerDiv'+player.sessionId
+            playerDiv.className = "playerCell"
+
+            if (this.clientPlayer?.id === 0) {
+                let banIcon = document.createElement('i')
+                banIcon.id = 'playerBan'+player.sessionId
+                banIcon.className = 'playerBan fas fa-user-alt-slash'
+                playerDiv.appendChild(banIcon)
+            }
+
+            let colorIcon = document.createElement('i')
+            colorIcon.id = 'playerAvatar'+player.sessionId
+            colorIcon.className = 'playerAvatar fas fa-user-circle'
+            colorIcon.style.color = player.color.toString(16)
+            playerDiv.appendChild(colorIcon)
+
+            let name = document.createElement('h1')
+            name.id = 'playerName'+player.sessionId
+            name.className = 'playerName'
+            name.innerHTML = 'Player 0' + player.id
+            playerDiv.appendChild(name)
+
+            if (player.sessionId === this.clientPlayer?.sessionId || this.clientPlayer?.id === 0){
+                let renameIcon = document.createElement('i')
+                renameIcon.id = 'playerRename'+player.sessionId
+                renameIcon.className = 'playerRename fas fa-edit'
+                playerDiv.appendChild(renameIcon)
+
+            }
+
+            player.onChange = (changes) => {
+                this.handleChangePlayer(player)
+            }
+
+            parent.appendChild(playerDiv)
+
+        }
+    }
+
+    private handleRemovePlayer(player: Player){
+
+    }
+
+    private handleChangePlayer(player: Player){
+
     }
 
 
@@ -309,6 +338,9 @@ export default class GameHub extends Phaser.Scene {
         this.clientPlayer = player
         console.log('HandleSessionId: ' + this.clientPlayer.sessionId)
     }
+
+
+    private handleClientJoin
 
     private handlePlayersLeave(playerIndex: number, state: IGameHubState) {
         console.log('PlayerLeave: ' + playerIndex)

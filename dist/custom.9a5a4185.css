@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
 #UIDiv {
   height: 100%;
   width: 100%;
@@ -18,34 +19,65 @@
   width: 60%;
 }
 
+#playerDiv {
+  height: 100%;
+  width: 50%;
+  background-color: transparent;
+}
+
+#playerDivList {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.playerCell {
+  min-height: 12.5%;
+  max-height: 25%;
+  width: 100%;
+  display: flex;
+}
+
+.playerBan {
+  min-height: 100%;
+  align-self: center;
+  color: red;
+  font-size: 1.2em;
+  margin-left: 0.2em;
+}
+
+.playerAvatar {
+  min-height: 100%;
+  font-size: 1.7em;
+  margin-right: 0.2em;
+  margin-left: 0.3em;
+  align-self: center;
+}
+
+.playerName {
+  min-height: 100%;
+  margin-right: 0.3em;
+  font-size: 1.5em;
+  font-family: "Bebas Neue", cursive;
+  align-self: center;
+  text-align: center;
+  color: #bfbfbf;
+}
+
+.playerRename {
+  min-height: 100%;
+  font-size: 1.2em;
+  align-self: center;
+  color: #bfbfbf;
+}
+
 #chatDiv {
   height: 100%;
   width: 50%;
   display: flex;
   flex-direction: column;
   background-color: #404040;
-}
-
-#columnMiddleDiv {
-  width: 5%;
-  height: 100%;
-}
-
-#playerDiv {
-  height: 100%;
-  width: 50%;
-  background-color: blue;
-}
-
-#launchDiv {
-  height: 10%;
-  width: 60%;
-  background-color: yellow;
-}
-
-#launchDiv:focus-within #messagesDiv {
-  height: 70%;
-  width: 100%;
 }
 
 #messagesDiv {
@@ -162,6 +194,17 @@
   font-size: 2em;
   align-self: center;
   color: #8d8d8d;
+}
+
+#launchDiv {
+  height: 10%;
+  width: 60%;
+  background-color: yellow;
+}
+
+#launchDiv:focus-within #messagesDiv {
+  height: 70%;
+  width: 100%;
 }
 
 /*# sourceMappingURL=/custom.9a5a4185.css.map */

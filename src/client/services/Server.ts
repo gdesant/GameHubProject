@@ -41,12 +41,15 @@ export default class Server {
             this.events.emit('player-leave', message.playerIndex, message.state)
         })
 
+        this.room.onStateChange.once(state => {
+            this.events.emit('first-state-changed', state)
+        })
+
         this.room.onStateChange(state => {
             this.events.emit('on-state-changed', state)
         })
 
-        this.room.state.players.onChange = (changes) => {
-
+        this.room.state.players.onAdd = (changes) => {
         }
 
         this.room.state.chat.onChange = (changes) => {
