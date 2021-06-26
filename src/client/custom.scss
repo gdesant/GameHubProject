@@ -154,9 +154,9 @@
 }
 
 .messageContent {
-    max-width:40%;
+    max-width:57%;
     height: 100%;
-    margin-left: 1%;
+    margin-left: 2%;
 }
 
 .messageContentText {
@@ -187,14 +187,25 @@
     background-color: rgba(255, 255, 255, 0);
     transition: height 0.3s ease-in-out,
                 background-color 0.3s ease-in-out;
+    font-size: 3em;
 }
 
 #inputDiv:focus-within {
     height: 30%;
     width: 100%;
-    padding: 0 0.4em 0.4em 0;
+    padding: 0 10px 20px 0;
     border-top: 5px solid #8d8d8d;
     background-color: white;
+}
+#inputDiv span{
+    align-self: center;
+    font-size: 50%;
+    transition: font-size 0.3s ease-in-out;
+}
+
+#inputDiv:focus-within span{
+    align-self: center;
+    font-size: 100%;
 }
 
 #messageInput {
@@ -208,18 +219,34 @@
     overflow: hidden;
 }
 
+#messageInput:focus {
+    padding-top: 1%;
+    padding-left: 1%;
+    z-index: 0;
+    border:none;
+    height: 100%;
+    width: 80%;
+    background-color: transparent;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    color: #464646;
+    font-size: 35%;
+}
+
 #messageInput::placeholder {
     z-index: 0;
     color: rgba(255, 255, 255, 0.65);
     align-self: center;
     height: 100%;
-    font-size: 2em;
+    font-size: 100%;
 }
 
 #messageInput:focus::placeholder {
     z-index: 0;
     color: rgba(64, 64, 64, 1);
     align-self: center;
+    font-size: 100%;
 }
 
 #spawnIcoMsg {
