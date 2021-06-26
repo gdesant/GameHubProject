@@ -1,5 +1,4 @@
 import Texto from "../../../server/Chat/Texto";
-import IGameHubState from "../../../types/IGameHubState";
 import GameHub from "../GameHub";
 
 export function getScrollHeightPercentage(messagesDiv: HTMLElement) {
@@ -11,6 +10,16 @@ export function getScrollHeightPercentage(messagesDiv: HTMLElement) {
         return (h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight) * 100;
     else
         return undefined
+}
+
+export function scrollToBottom(parent:HTMLElement | null, percent: number | undefined){
+    if (parent !== null){
+        if (percent !== undefined){
+            if (percent > 90 || isNaN(percent)) {
+                parent.scroll(0, parent.scrollHeight)
+            }
+        }
+    }
 }
 
 export function initMessageDiv(): HTMLElement {
@@ -45,7 +54,7 @@ export function initMessageDiv(): HTMLElement {
 
 function messageBan(msg: Texto, slf: GameHub, parent: HTMLElement): void {
     let messageBan = document.createElement('i')
-    messageBan.className = 'fas fa-ban'
+    messageBan.className = 'messageBan fas fa-ban'
     messageBan.id = 'messageBan' + msg.messageId
 
     messageBan.onclick = function () {
@@ -58,6 +67,9 @@ function messageBan(msg: Texto, slf: GameHub, parent: HTMLElement): void {
 function messagePlayer(msg: Texto, slf: GameHub, parent: HTMLElement, type: number): void {
     let player = document.createElement('div')
     player.className = 'messagePlayer'
+
+    if (msg.senderSessionId !== slf.getClient()?.sessionId && slf.getClient()?.id === 0)
+        player.className += '_noleft'
 
     let playerTag = document.createElement('div')
     playerTag.id = 'playerTag'
@@ -114,6 +126,15 @@ export function initInputMessageDiv(slf: GameHub): HTMLElement {
             shift = event.keyCode
     })
 
+    input.addEventListener('focus', (event) => {
+        let parent = document.getElementById('messagesDiv')
+        let percent: number | undefined = 0
+        if (parent !== null){
+            percent = getScrollHeightPercentage(parent)
+            scrollToBottom(parent, percent)
+        }
+    });
+
     input.addEventListener("keyup", function (event){
         if (event.keyCode === shift)
             shift = 0
@@ -132,6 +153,8 @@ export function initInputMessageDiv(slf: GameHub): HTMLElement {
     spanIco.onclick = function () {
         slf.sendMsg(input.value.replace(/(^[ \t]*\n)/gm, ""))
         input.value = ""
+        input.disabled = true
+        input.disabled = false
 }
 
 

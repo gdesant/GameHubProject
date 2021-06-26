@@ -13,7 +13,7 @@ import {
     createMessageDiv,
     getScrollHeightPercentage,
     initInputMessageDiv,
-    initMessageDiv
+    initMessageDiv, scrollToBottom
 } from "./components/GameHubComponentsChat";
 import {createPlayerDiv} from "./components/GameHubComponentsPlayersBoard";
 
@@ -107,6 +107,8 @@ export default class GameHub extends Phaser.Scene {
 
         this.cameras.main.centerOn(0, 0)
         this.add.dom(0, 0, this.UI)
+        // @ts-ignore
+        this.UI.parentElement.setAttribute('style', this.UI.parentElement.getAttribute('style'))
     }
 
 
@@ -145,18 +147,10 @@ export default class GameHub extends Phaser.Scene {
             parent.appendChild(messageDiv)
         }
 
+        scrollToBottom(parent, percent)
+
 
         let messagesDiv = document.getElementById('messagesDiv')
-
-        if (parent !== null){
-            console.log(percent + ' ScrollPercent')
-            if (percent !== undefined){
-                if (percent > 90 || isNaN(percent)) {
-                    console.log('Scroll to the bottom')
-                    parent.scroll(0, parent.scrollHeight)
-                }
-            }
-        }
     }
 
     private handleChangeMessage(msg: Texto) {
