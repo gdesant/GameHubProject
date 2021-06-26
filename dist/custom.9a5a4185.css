@@ -1,0 +1,167 @@
+#UIDiv {
+  height: 100%;
+  width: 100%;
+  margin: 5% 20%;
+  display: flex;
+  flex-direction: column;
+}
+
+#hubTitleDiv {
+  height: 10%;
+  width: 60%;
+  background-color: red;
+}
+
+#middleHubDiv {
+  display: flex;
+  height: 60%;
+  width: 60%;
+}
+
+#chatDiv {
+  height: 100%;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  background-color: #404040;
+}
+
+#columnMiddleDiv {
+  width: 5%;
+  height: 100%;
+}
+
+#playerDiv {
+  height: 100%;
+  width: 50%;
+  background-color: blue;
+}
+
+#launchDiv {
+  height: 10%;
+  width: 60%;
+  background-color: yellow;
+}
+
+#launchDiv:focus-within #messagesDiv {
+  height: 70%;
+  width: 100%;
+}
+
+#messagesDiv {
+  height: 85%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+}
+
+.messageDiv {
+  width: 100%;
+  padding-top: 2%;
+  padding-bottom: 2%;
+  margin-top: 2%;
+  margin-bottom: 2%;
+  display: flex;
+  clear: both;
+  background-color: #8d8d8d;
+  border-radius: 5px;
+}
+
+.messagePlayer {
+  width: 40%;
+  height: 100%;
+}
+
+#playerTag {
+  text-align: center;
+  color: white;
+  min-height: 30%;
+  font-size: 85%;
+}
+
+#playerSessid {
+  text-align: center;
+  color: white;
+  min-height: 30%;
+  font-size: 80%;
+}
+
+.messageContent {
+  max-width: 40%;
+  height: 100%;
+  margin-left: 1%;
+}
+
+.messageContentText {
+  width: 100%;
+  height: auto;
+  word-wrap: break-word;
+  /* IE 5.5-7 */
+  white-space: -moz-pre-wrap;
+  /* Firefox 1.0-2.0 */
+  white-space: pre-wrap;
+  /* current browsers */
+  text-align: start;
+  font-size: 75%;
+  color: white;
+}
+
+#messageBan {
+  width: 10%;
+  min-height: 100%;
+  padding-left: 0.1em;
+  color: red;
+}
+
+#inputDiv {
+  height: 15%;
+  width: 100%;
+  padding: 0.1em 0.4em 0.4em 0.1em;
+  border-top: 5px solid #8d8d8d;
+  background-color: rgba(255, 255, 255, 0);
+  transition: height 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+#inputDiv:focus-within {
+  height: 30%;
+  width: 100%;
+  padding: 0 0.4em 0.4em 0;
+  border-top: 5px solid #8d8d8d;
+  background-color: white;
+}
+
+#messageInput {
+  z-index: 0;
+  border: none;
+  height: 100%;
+  width: 80%;
+  background-color: transparent;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+}
+
+#messageInput::placeholder {
+  z-index: 0;
+  color: rgba(255, 255, 255, 0.65);
+  align-self: center;
+  height: 100%;
+  font-size: 2em;
+}
+
+#messageInput:focus::placeholder {
+  z-index: 0;
+  color: #404040;
+  align-self: center;
+}
+
+#spawnIcoMsg {
+  width: 20%;
+  height: 100%;
+  font-size: 2em;
+  align-self: center;
+  color: #8d8d8d;
+}
+
+/*# sourceMappingURL=/custom.9a5a4185.css.map */
