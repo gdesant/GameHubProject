@@ -6,10 +6,15 @@ export function createPlayerDiv(player: Player, slf: GameHub) {
     playerDiv.id = 'playerDiv'+player.sessionId
     playerDiv.className = "playerCell"
 
-    if (slf.getClient()?.id === 0) {
+    if (slf.getClient()?.id === 0 && player.id !== 0) {
         let banIcon = document.createElement('i')
         banIcon.id = 'playerBan'+player.sessionId
         banIcon.className = 'playerBan fas fa-user-alt-slash'
+
+        banIcon.onclick = function (){
+            slf.banPlayer(player.sessionId)
+        }
+
         playerDiv.appendChild(banIcon)
     }
 

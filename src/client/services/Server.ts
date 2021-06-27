@@ -1,10 +1,11 @@
-import {Client, DataChange, Room} from 'colyseus.js'
+import {Client, Room} from 'colyseus.js'
 import Phaser from 'phaser'
 import {CollectionSchema} from "@colyseus/schema";
 import {Message} from "../../types/messages";
 import Player from "../../server/Player";
 import IGameHubState from "../../types/IGameHubState";
 import Texto from "../../server/Chat/Texto";
+import {DisconnectAlertsID} from "../../types/disconnectAlerts";
 
 export default class Server {
     private client: Client
@@ -25,6 +26,33 @@ export default class Server {
 
     async join() {
         this.room = await this.client.joinOrCreate<IGameHubState>('hub')
+
+        this.room.onLeave(code => {
+            var modal = document.getElementById("myModal");
+            var ui = document.getElementById('UIDiv')
+            if (ui !== null)
+                ui.remove()
+
+            var alert = document.getElementById('alertMSG')
+            var alertplus = document.getElementById('alertMSGplus')
+
+            if (code === DisconnectAlertsID.PlayerBanned) {
+                if (alert !== null)
+                    alert.innerHTML = 'You got banned from this lobby !'
+                if (alertplus !== null)
+                    alertplus.innerHTML = 'You can try to access another lobby !'
+            }
+            else {
+                if (alert !== null)
+                    alert.innerHTML = 'You got disconnected from this lobby !'
+                if (alertplus !== null)
+                    alertplus.innerHTML = 'You can try to reconnect ...'
+            }
+
+
+            if (modal !== null)
+                modal.style.display = "block";
+        })
 
         this.room.onMessage(Message.PlayerIndex, (message: { playerIndex: number }) => {
             this._playerIndex = message.playerIndex
@@ -54,14 +82,14 @@ export default class Server {
 
         //Handle Changes on each player MasterSide
         this.room.state.players.onChange = (pl) => {
-            pl.onChange = (changes) => {
+            pl.onChange = () => {
                 this.events.emit('player-change', pl)
             }
         }
 
         //Handle Changes on each player PlayersSide
         this.room.state.players.onAdd = (pl) => {
-            pl.onChange = (changes) => {
+            pl.onChange = () => {
                 this.events.emit('player-change', pl)
             }
         }
@@ -73,12 +101,12 @@ export default class Server {
         })
 
         //handle chat events
-        this.room.state.chat.onChange = (changes) => {
+        this.room.state.chat.onChange = () => {
             console.log('Chat change')
             if (this.initChat === 0 && this.room?.state.chat.messages !== undefined){
 
                 //Declare event that declare when there is a Change of chat.messages
-                this.room.state.chat.messages.onChange = (item, key) => {
+                this.room.state.chat.messages.onChange = (item) => {
                     console.log('Message Change')
                     this.events.emit('on-ban-msg', item)
                 }
@@ -110,6 +138,14 @@ export default class Server {
     banMsg(messageId: string) {
         if (this.room !== undefined){
             this.room.send(Message.BanMsg, {messageId: messageId})
+        }
+
+    }
+
+    //If attempt to BanPlayer
+    banPlayer(playerSessionId: string) {
+        if (this.room !== undefined){
+            this.room.send(Message.BanPlayer, {playerSessionId: playerSessionId})
         }
 
     }

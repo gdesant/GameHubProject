@@ -6,5 +6,6 @@ export enum Message
 	PlayerJoin,
 	PlayerLeave,
 	SendMsg,
-	BanMsg
+	BanMsg,
+	BanPlayer
 }

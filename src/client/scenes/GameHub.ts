@@ -4,10 +4,6 @@ import {CollectionSchema} from "@colyseus/schema";
 import Player from "../../server/Player";
 import Server from "../services/Server";
 import IGameHubState from "../../types/IGameHubState";
-import GameObject = Phaser.GameObjects.GameObject;
-import Container = Phaser.GameObjects.Container;
-import {DataChange} from "colyseus.js";
-import {Message} from "../../types/messages";
 import Texto from "../../server/Chat/Texto";
 import {
     createMessageDiv,
@@ -24,7 +20,6 @@ export default class GameHub extends Phaser.Scene {
     private clientPlayer: Player | undefined
     private server: Server | undefined
     private players: CollectionSchema<Player> | undefined
-    private playersObjects: Container | undefined
     private UI: HTMLElement | undefined
     private stat: IGameHubState | undefined
 
@@ -130,9 +125,7 @@ export default class GameHub extends Phaser.Scene {
     private handleAddMessage(msg: Texto) {
         console.log('handleAddMessage')
 
-        let msgid = -1
-
-        msg.onChange = (changes) => {
+        msg.onChange = () => {
             this.handleChangeMessage(msg)
         }
 
@@ -255,7 +248,12 @@ export default class GameHub extends Phaser.Scene {
         }
     }
 
-
+    banPlayer(playerSessionId: string): void {
+        if (this.server !== undefined){
+            console.log('Trying to Kick: ' + playerSessionId)
+            this.server.banPlayer(playerSessionId)
+        }
+    }
 
     //Handlers
 

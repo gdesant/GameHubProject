@@ -15,7 +15,7 @@ export function getScrollHeightPercentage(messagesDiv: HTMLElement) {
 export function scrollToBottom(parent:HTMLElement | null, percent: number | undefined){
     if (parent !== null){
         if (percent !== undefined){
-            if (percent > 90 || isNaN(percent)) {
+            if (percent > 85 || isNaN(percent)) {
                 parent.scroll(0, parent.scrollHeight)
             }
         }
@@ -126,14 +126,24 @@ export function initInputMessageDiv(slf: GameHub): HTMLElement {
             shift = event.keyCode
     })
 
-    input.addEventListener('focus', (event) => {
-        let parent = document.getElementById('messagesDiv')
-        let percent: number | undefined = 0
-        if (parent !== null){
-            percent = getScrollHeightPercentage(parent)
-            scrollToBottom(parent, percent)
+    let blured = 0
+
+    input.onfocus = function (){
+        if (blured === 0){
+            input.blur()
+            let parent = document.getElementById('messagesDiv')
+
+            let percent: number | undefined = 0
+            if (parent !== null){
+                percent = getScrollHeightPercentage(parent)
+                blured = 1
+                input.focus()
+                scrollToBottom(parent, percent)
+                if (blured === 1)
+                    input.onblur = function () {blured = 0}
+            }
         }
-    });
+    }
 
     input.addEventListener("keyup", function (event){
         if (event.keyCode === shift)

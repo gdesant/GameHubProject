@@ -6,11 +6,13 @@ import {Message} from "../types/messages";
 import PlayerSelectionCommand from "./commands/PlayerSelectionCommand";
 import SendMessageCommand from "./commands/SendMessage";
 import BanMessage from "./commands/BanMessage";
+import {DisconnectAlertsID} from "../types/disconnectAlerts";
 
 export default class Game extends Room<GameHubState>
 {
     private dispatcher = new Dispatcher(this)
     private  stat = new GameHubState()
+    private playerBanned: string[] | undefined
 
     onCreate() {
         this.maxClients = 10
@@ -42,6 +44,32 @@ export default class Game extends Room<GameHubState>
             })
         })
 
+        //Declare event attemptToBanPlayer
+        this.onMessage(Message.BanPlayer, (client, message: { playerSessionId: string }) => {
+            console.log('redirecting ban player: ' + message.playerSessionId)
+            if (client.sessionId === this?.state?.players?.at(0)?.sessionId && message.playerSessionId !== client.sessionId)
+                this.banPlayer(message.playerSessionId)
+        })
+
+    }
+
+    private banPlayer(sessionId: string) {
+        console.log('Ban Player: ' + sessionId)
+        this.clients.forEach(client => {
+            if (client.sessionId === sessionId) {
+                this.playerBanned?.push(sessionId)
+                console.log('BanSure Player: ' + sessionId)
+                client.leave(DisconnectAlertsID.PlayerBanned, 'You got banned by player_' + sessionId)
+            }
+        })
+    }
+
+    async onAuth(client: Client) {
+        this.playerBanned?.forEach(pl => {
+            if (pl === client.sessionId)
+                throw new Error("You are banned from this lobby !");
+        })
+        return client
     }
 
     onJoin(client: Client): void | Promise<any> {
