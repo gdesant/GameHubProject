@@ -5,8 +5,8 @@ import ITexto from "../../types/ITexto";
 export class Texto extends Schema implements ITexto
 {
 
-    @type("number")
-    sender: number
+    @type("string")
+    sender: string
 
     @type("string")
     senderSessionId: string
@@ -26,7 +26,7 @@ export class Texto extends Schema implements ITexto
     @type("string")
     beforeBanMessage: string
 
-    constructor(sender: number, senderSessionId: string, message: string) {
+    constructor(sender: string, senderSessionId: string, message: string) {
         super();
         this.sender = sender
         this.senderSessionId = senderSessionId

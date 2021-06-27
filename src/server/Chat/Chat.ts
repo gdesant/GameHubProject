@@ -26,7 +26,7 @@ export class Chat extends Schema implements IChat
     }
 
     addMessage(sender: Player, message: string) {
-        this.messages.add(new Texto(sender.id, sender.sessionId, message))
+        this.messages.add(new Texto(sender.name, sender.sessionId, message))
         this.chatSize++
     }
 

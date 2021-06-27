@@ -7,6 +7,7 @@ import PlayerSelectionCommand from "./commands/PlayerSelectionCommand";
 import SendMessageCommand from "./commands/SendMessage";
 import BanMessage from "./commands/BanMessage";
 import {DisconnectAlertsID} from "../types/disconnectAlerts";
+import Texto from "./Chat/Texto";
 
 export default class Game extends Room<GameHubState>
 {
@@ -51,6 +52,12 @@ export default class Game extends Room<GameHubState>
                 this.banPlayer(message.playerSessionId)
         })
 
+        //Declare event changeName
+        this.onMessage(Message.ChangeName, (client, message: { playerSessionId: string, newName: string }) => {
+            console.log('redirecting Change player (' + message.playerSessionId + ') name to:' + message.newName )
+                this.changeName(client, message.playerSessionId, message.newName)
+        })
+
     }
 
     private banPlayer(sessionId: string) {
@@ -89,14 +96,6 @@ export default class Game extends Room<GameHubState>
             this.state.players.add(player)
         }
 
-        //Send Players Connected before the client initial connection
-        this.state.players.forEach(pl => {
-            // @ts-ignore
-            if (pl.id < player?.id) {
-                client.send(Message.PlayerJoin, {player: pl})
-            }
-        })
-
         //Send Client Info to the client at the initial connection
         client.send(Message.ClientReturn, { playerIndex: player.id, player: player, sessionId: client.sessionId, state: this.state})
 
@@ -127,7 +126,6 @@ export default class Game extends Room<GameHubState>
                 id = player.id
                 pl = player
             }
-
         })
 
         //Check if player is registered
@@ -144,6 +142,12 @@ export default class Game extends Room<GameHubState>
                     cli.send(Message.PlayerLeave, { playerSessId: sess, state: this.stat})
             })
 
+            //Change message Sender
+            this.state.chat.messages.forEach(msg =>{
+                if (msg.senderSessionId === client.sessionId)
+                    msg.sender = "#" + (<Player>this.state.players.at(id)).name + "#"
+            })
+
             //Delete the player
             this.state.players.delete(<Player>this.state.players.at(id))
 
@@ -154,11 +158,37 @@ export default class Game extends Room<GameHubState>
                         pl.id = pl.id - 1
                         if (pl.color === Player.playersColors[pl.id + 1])
                             pl.color = Player.playersColors[pl.id]
+                        if (pl.customName === false) {
+                            pl.name = 'Player 0' + pl.id
+                        }
                     }
                 })
             }
 
         }
 
+    }
+
+    private changeName(client: Client, sessionId: string, changeName: string) {
+        console.log('ChangeName: ' + sessionId)
+        this.state.players.forEach(player => {
+            if (player.sessionId === sessionId) {
+                if (player.name !== changeName && changeName.length < 21 && changeName.length > 3){
+                    let bf = player.name.toString()
+                    player.name = changeName
+
+                    let alert = new Texto("Hub", "none", " - "+ bf +" - has changed his name to - "+ player.name + "- !")
+                    alert.isBan = true
+
+                    this.state.chat.messages.add(alert)
+                    player.customName = true
+                    this.state.chat.messages.forEach(msg =>{
+                        if (msg.senderSessionId === player.sessionId){
+                            msg.sender = player.name
+                        }
+                    })
+                }
+            }
+        })
     }
 }

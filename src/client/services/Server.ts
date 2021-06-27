@@ -90,7 +90,7 @@ export default class Server {
         //Handle Changes on each player PlayersSide
         this.room.state.players.onAdd = (pl) => {
             pl.onChange = () => {
-                this.events.emit('player-change', pl)
+                this.events.emit('player-change', pl, this.room?.state)
             }
         }
 
@@ -108,7 +108,7 @@ export default class Server {
                 //Declare event that declare when there is a Change of chat.messages
                 this.room.state.chat.messages.onChange = (item) => {
                     console.log('Message Change')
-                    this.events.emit('on-ban-msg', item)
+                    this.events.emit('on-change-msg', item)
                 }
 
                 //Declare event that declare when there is an Add of chat.messages
@@ -147,7 +147,12 @@ export default class Server {
         if (this.room !== undefined){
             this.room.send(Message.BanPlayer, {playerSessionId: playerSessionId})
         }
+    }
 
+    tryToChangePlayerName(playerSessionId: string, newName: string) {
+        if (this.room !== undefined){
+            this.room.send(Message.ChangeName, {playerSessionId: playerSessionId, newName: newName})
+        }
     }
 
 //Local Events
@@ -175,7 +180,7 @@ export default class Server {
 
     //Event on msgBan
     onChangeMessage(cb: (msg: Texto) => void, context?: any) {
-        this.events.on('on-ban-msg', cb, context)
+        this.events.on('on-change-msg', cb, context)
     }
 
 
@@ -184,7 +189,7 @@ export default class Server {
         this.events.on('player-join', cb, context)
     }
 
-    onPlayerChange(cb: (player: Player) => void, context?: any) {
+    onPlayerChange(cb: (player: Player, state: IGameHubState) => void, context?: any) {
         this.events.on('player-change', cb, context)
     }
 

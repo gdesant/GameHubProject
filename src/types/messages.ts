@@ -7,5 +7,6 @@ export enum Message
 	PlayerLeave,
 	SendMsg,
 	BanMsg,
-	BanPlayer
+	BanPlayer,
+	ChangeName,
 }

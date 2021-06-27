@@ -155,12 +155,15 @@ html, body{
 }
 .playerName{
     min-height: 100%;
+    width: 5em;
     margin-right: 0.3em;
     font-size: 1.5em;
     font-family: 'Bebas Neue', cursive;
     align-self: center;
-    text-align: center;
+    text-align: left;
     color: #bfbfbf;
+    background-color: transparent;
+    border-style: none;
 }
 
 .playerRename{
@@ -239,7 +242,7 @@ html, body{
 .messageDivMe p{
     color: #404040;
 }
-.messageDivMe #playerTag{
+.messageDivMe .playerTag{
     color: #464646;
 }
 
@@ -253,7 +256,7 @@ html, body{
     height: 100%;
 }
 
-#playerTag{
+.playerTag{
     text-align: center;
     color: white;
     min-height: 30%;

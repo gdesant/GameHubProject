@@ -31,7 +31,7 @@ export default class BanMessage extends Command<IGameHubState> {
                     msg = message
             })
             if (msg !== undefined) {
-                msg.message = 'Deleted by Player_' + player.id
+                msg.message = 'Deleted by ' + player.name
                 msg.isBan = true
                 console.log('msg: ' + msg.messageId + ' has been ban by Player: ' + client.sessionId)
             }

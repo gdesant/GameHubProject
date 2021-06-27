@@ -1,5 +1,6 @@
 import Texto from "../../../server/Chat/Texto";
 import GameHub from "../GameHub";
+import IGameHubState from "../../../types/IGameHubState";
 
 export function getScrollHeightPercentage(messagesDiv: HTMLElement) {
     var h = messagesDiv,
@@ -22,33 +23,42 @@ export function scrollToBottom(parent:HTMLElement | null, percent: number | unde
     }
 }
 
-export function initMessageDiv(): HTMLElement {
+export function initMessageDiv(state: IGameHubState, slf: GameHub): HTMLElement {
     let messagesDiv = document.createElement('ul')
     messagesDiv.id = 'messagesDiv'
+
+    state.chat.messages.forEach(message => {
+        messagesDiv.appendChild(createMessageDiv(message, slf))
+    })
+
     return messagesDiv
 }
 
-
  export function createMessageDiv(msg: Texto, slf: GameHub): HTMLElement {
+
     let messageDiv = document.createElement('li')
     messageDiv.id = 'message_' + msg.messageId
     messageDiv.className = 'messageDivOther'
 
-    let type = 0
+     if (msg.isBan)
+         messageDiv.innerHTML = msg.message
+     else {
+         let type = 0
 
-    if (msg.senderSessionId === slf.getClient()?.sessionId) {
-        type = 1
-        messageDiv.className = 'messageDivMe'
-    }
+         if (msg.senderSessionId === slf.getClient()?.sessionId) {
+             type = 1
+             messageDiv.className = 'messageDivMe'
+         }
 
 
-    if (slf.getClient()?.id === 0 && type === 0) {
-        messageBan(msg, slf, messageDiv)
-    }
+         if (slf.getClient()?.id === 0 && type === 0) {
+             messageBan(msg, slf, messageDiv)
+         }
 
-    messagePlayer(msg, slf, messageDiv, type)
-    messageContent(msg, slf, messageDiv, type)
+         messagePlayer(msg, slf, messageDiv, type)
+         messageContent(msg, slf, messageDiv, type)
 
+     }
     return messageDiv
 }
 
@@ -72,8 +82,9 @@ function messagePlayer(msg: Texto, slf: GameHub, parent: HTMLElement, type: numb
         player.className += '_noleft'
 
     let playerTag = document.createElement('div')
-    playerTag.id = 'playerTag'
-    playerTag.innerHTML = 'Player ' + msg.sender
+    playerTag.className = 'playerTag'
+    playerTag.id = 'playerTag_'+msg.messageId
+    playerTag.innerHTML = msg.sender
     player.appendChild(playerTag)
 
     if (slf.getClient()?.id === 0) {

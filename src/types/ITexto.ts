@@ -2,7 +2,7 @@ import {Schema} from '@colyseus/schema'
 
 export interface ITexto extends Schema
 {
-    sender: number
+    sender: string
     senderSessionId: string
     message: string
     time: number

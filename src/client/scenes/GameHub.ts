@@ -11,7 +11,7 @@ import {
     initInputMessageDiv,
     initMessageDiv, scrollToBottom
 } from "./components/GameHubComponentsChat";
-import {createPlayerDiv} from "./components/GameHubComponentsPlayersBoard";
+import {createPlayerDiv, refreshPlayerDiv} from "./components/GameHubComponentsPlayersBoard";
 
 export default class GameHub extends Phaser.Scene {
 
@@ -22,6 +22,7 @@ export default class GameHub extends Phaser.Scene {
     private players: CollectionSchema<Player> | undefined
     private UI: HTMLElement | undefined
     private stat: IGameHubState | undefined
+    private oldId: number | undefined
 
     public getClient(): Player | undefined {
         return this.clientPlayer
@@ -90,7 +91,7 @@ export default class GameHub extends Phaser.Scene {
         let middleHubDiv = document.createElement('div')
         middleHubDiv.id = 'middleHubDiv'
 
-        this.initChat(middleHubDiv);
+        this.initChat(state, middleHubDiv);
         this.initPlayers(middleHubDiv);
 
         this.UI.appendChild(middleHubDiv)
@@ -109,10 +110,10 @@ export default class GameHub extends Phaser.Scene {
 
     //ChatPart
 
-    private initChat(middleHubDiv: HTMLElement) {
+    private initChat(state: IGameHubState, middleHubDiv: HTMLElement) {
         let chatDiv = document.createElement('div')
         chatDiv.id = 'chatDiv'
-        let messagesDiv = initMessageDiv()
+        let messagesDiv = initMessageDiv(state, this)
 
         let inputDiv = initInputMessageDiv(this)
         inputDiv.id = 'inputDiv'
@@ -153,9 +154,12 @@ export default class GameHub extends Phaser.Scene {
             if (msg.isBan)
                 message.innerHTML = msg.message
             else {
+                let playerTag = document.getElementById('playerTag_' + msg.messageId)
                 message = document.getElementById('messageContentText_' + msg.messageId)
                 if (message !== null)
                     message.innerHTML = msg.message
+                if (playerTag !== null)
+                    playerTag.innerHTML = msg.sender
             }
         }
 
@@ -188,9 +192,16 @@ export default class GameHub extends Phaser.Scene {
         let playerList = document.createElement('ul')
         playerList.id = 'playerListDiv'
 
-
         playerDiv.appendChild(playerList)
         middleHubDiv.appendChild(playerDiv)
+    }
+
+    private initPlayerDivs(players: CollectionSchema<Player>){
+        if (players !== undefined){
+            players.forEach(player => {
+                this.handleAddPlayer(player)
+            })
+        }
     }
 
     private handleAddPlayer(player: Player){
@@ -213,38 +224,24 @@ export default class GameHub extends Phaser.Scene {
             playerDiv.remove()
     }
 
-    private handleChangePlayer(player: Player){
-        console.log('HandleChangePlayer: ' + player.sessionId)
-
-        //Refresh Name
-        let name = document.getElementById('playerName'+player.sessionId)
-        if (name !== null)
-            name.innerHTML = 'Player 0' + (player.id + 1).toString()
-
-        //Refresh Avatar
-        let color = document.getElementById('playerAvatar'+player.sessionId)
-        if (color !== null)
-            color.style.color = player.color.toString(16)
-
-        //Remove RenameIcon
-        let rename = document.getElementById('playerRename'+player.sessionId)
-        if (rename !== null)
-            rename.remove()
-
-
-
-        let playerDiv = document.getElementById('playerDiv'+player.sessionId)
-        if (playerDiv !== null){
-
-            //Replace RenameIcon
-            if (player.sessionId === this.clientPlayer?.sessionId || this.clientPlayer?.id === 0){
-                let renameIcon = document.createElement('i')
-                renameIcon.id = 'playerRename'+player.sessionId
-                renameIcon.className = 'playerRename fas fa-edit'
-                playerDiv.appendChild(renameIcon)
-
+    private handleChangePlayer(player: Player, state: IGameHubState){
+        if (player.sessionId === this.clientPlayer?.sessionId){
+            console.log('HandleChangeClient: ' + player.name + ' | NewId === ' + player.id )
+            this.clientPlayer = player
+            if (player.id === 0 && this.oldId !== 0){
+                this.UI?.remove()
+                if (this.stat !== undefined){
+                    this.initHub(state)
+                    this.initPlayerDivs(state.players)
+                }
+                console.log('You are now the master')
+            }else {
+                refreshPlayerDiv(player, this)
             }
-
+            this.oldId = player.id
+        }else {
+            console.log('HandleChangePlayer: ' + player.name )
+            refreshPlayerDiv(player, this)
         }
     }
 
@@ -252,6 +249,13 @@ export default class GameHub extends Phaser.Scene {
         if (this.server !== undefined){
             console.log('Trying to Kick: ' + playerSessionId)
             this.server.banPlayer(playerSessionId)
+        }
+    }
+
+    tryToChangeName(playerSessionId: string, newName: string): void {
+        if (this.server !== undefined){
+            console.log('Trying to Kick: ' + playerSessionId)
+            this.server.tryToChangePlayerName(playerSessionId, newName)
         }
     }
 
@@ -265,7 +269,8 @@ export default class GameHub extends Phaser.Scene {
 
     private handleClientReturn(playerIndex: number, player: Player, sessionId: string, state: IGameHubState) {
         this.clientPlayer = player
-        this.handleAddPlayer(player)
+        this.initPlayerDivs(state.players)
+        this.oldId = player.id
         console.log('ClientReturn: ' + this.clientPlayer.sessionId)
     }
 
